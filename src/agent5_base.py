@@ -42,11 +42,11 @@ class CompositeInteraction:
 
     def key(self):
         """ The key to find this interaction in the dictionary is the string '<pre_interaction><post_interaction>'. """
-        return f"{self.pre_interaction}{self.post_interaction}"
+        return f"({self.pre_interaction.key()},{self.post_interaction.key()})"
 
     def __str__(self):
         """ Print the interaction in the Newick tree format (pre_interaction, post_interaction: valence) """
-        return f"({self.pre_interaction}, {self.post_interaction}: {self.get_valence()})"
+        return f"({self.pre_interaction}, {self.post_interaction}: {self.weight})"
 
     def __hash__(self):
         """ The hash is necessary to use interactions as keys in a dictionary """

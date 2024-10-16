@@ -81,7 +81,7 @@ interactions = [
 # TODO Choose an agent
 a = Agent5(interactions)
 # TODO Choose an environment
-e = Environment1()
+e = Environment3()
 # e = Environment2()
 # e = Environment3()
 # e = TurtlePyEnacter()
