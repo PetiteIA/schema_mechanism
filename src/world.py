@@ -7,7 +7,7 @@
 # from PetitCatEnacter import PetitCatEnacter
 # from turtlesim_enacter import TurtleSimEnacter # requires ROS
 from agent5_base import Interaction
-from Agent5_pandas import Agent5
+from Agent6 import Agent6
 
 
 class Agent:
@@ -79,7 +79,7 @@ interactions = [
 ]
 # valences = [[1, -1], [1, -1]]
 # TODO Choose an agent
-a = Agent5(interactions)
+a = Agent6(interactions)
 # TODO Choose an environment
 e = Environment3()
 # e = Environment2()
