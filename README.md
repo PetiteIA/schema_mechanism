@@ -19,6 +19,8 @@ Jupyter notebooks that you can successively run in Google Colab:
 * [Agent 2](notebooks/agent2.ipynb): the agent who thrived on good vibes
 * [Agent 3](notebooks/agent3.ipynb): the agent who tamed the turtle
 * [Agent 4](notebooks/agent4.ipynb): the agent who shifted with the context
+* [Agent 5](notebooks/agent5.ipynb): the agent who changed his mind
+* [Agent 6](notebooks/agent6.ipynb): the agent who used an older context
 
 # Learn more
 
