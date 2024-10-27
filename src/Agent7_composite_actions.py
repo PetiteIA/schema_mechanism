@@ -120,13 +120,18 @@ class Agent:
         self._previous_composite_interaction = None
         # Create a dataframe of default primitive interactions
         default_interactions = [interaction for interaction in _interactions if interaction.get_outcome() == 0]
-        data = {'proposed': [i.key() for i in default_interactions],
-                'E(Vi)': [0.] * len(default_interactions),
+        data = {'interaction': [i.key() for i in default_interactions],
                 'action': [i.get_action() for i in default_interactions],
-                'E(Va)': [0.] * len(default_interactions),
-                'interaction': [i.key() for i in default_interactions],
-                'weight': [0] * len(default_interactions)}
+                'weight': [0] * len(default_interactions),
+                'proclivity': [0] * len(default_interactions)}
         self.primitive_df = pd.DataFrame(data)
+        data2 = {'proposed': [i.key() for i in default_interactions],
+                 'E(Vi)': [0.] * len(default_interactions),
+                 'action': [i.get_action() for i in default_interactions],
+                 'E(Va)': [0.] * len(default_interactions),
+                 'interaction': [i.key() for i in default_interactions],
+                 'weight': [0] * len(default_interactions)}
+        self.primitive_df2 = pd.DataFrame(data2)
         # Store the selection dataframe as a class attribute so we can display it in the notebook
         self.selection_df = None
 
@@ -147,11 +152,9 @@ class Agent:
         # Call the learning mechanism
         self.learn()
 
-        # Calculate the proposed dataframe
-        self.calculate_proposed_df()
-
-        # Select the intended primitive interaction
-        self.select_intended_interaction()
+        # Call the action selection
+        # self.select_by_composite_action()
+        self.select_by_expected_valence()
 
         return self._intended_interaction.get_action()
 
@@ -180,7 +183,7 @@ class Agent:
                 # Retrieve the existing composite interaction
                 return self._composite_interactions[composite_interaction.key()]
 
-    def calculate_proposed_df(self):
+    def select_by_expected_valence(self):
         """Select the action that has the highest expected valence"""
 
         # The activated composite interactions
@@ -229,7 +232,7 @@ class Agent:
                 }
         expected_df = pd.DataFrame(data)
         # Add default interactions
-        expected_df = pd.concat([self.primitive_df, expected_df], ignore_index=True)
+        expected_df = pd.concat([self.primitive_df2, expected_df], ignore_index=True)
 
         # Shorten the composite interactions whose post_interaction have a negative valence
         for i, k in expected_df["proposed"].items():
@@ -275,6 +278,8 @@ class Agent:
                                                    + p2 * self._interactions[k2].get_valence())
         # The sum expected valence per action
         expected_df["E(Va)"] = expected_df.groupby("action")["E(Vi)"].transform("sum")
+        # The sum weight per action
+        # expected_df["weight"] = expected_df.groupby("action")["weight"].transform("sum")
 
         # Find the most probable outcome for each action
         max_weight_df = expected_df.loc[expected_df.groupby('action')['weight'].idxmax(), ['action', 'interaction']].reset_index(
@@ -282,32 +287,54 @@ class Agent:
         max_weight_df.columns = ['action', 'intended']
         expected_df = expected_df.merge(max_weight_df, on='action')
 
+        # Find the first row that has the highest proclivity
+        max_index = expected_df['E(Va)'].idxmax()
+        intended_interaction_key = expected_df.loc[max_index, ['intended']].values[0]
+        print(f"Intended Max E(Va) {intended_interaction_key}")
+        self._intended_interaction = self._interactions[intended_interaction_key]
+
+        # print(expected_df)
         # Store the dataframe for printing
         self.selection_df = expected_df.copy()
 
-    def select_intended_interaction(self):
+    def select_by_composite_action(self):
+        """"""
+        # Create a dataframe from the activated composite interaction
+        activated_keys = [composite_interaction.key() for composite_interaction in
+                          self._composite_interactions.values()
+                          if composite_interaction.pre_interaction == self._last_interaction or
+                          composite_interaction.pre_interaction == self._last_composite_interaction]
+        data = {'composite': activated_keys,
+                'weight': [self._composite_interactions[k].weight for k in activated_keys],
+                'post_valence': [self._composite_interactions[k].post_interaction.get_valence() for k in
+                                 activated_keys],
+                'action': [self._composite_interactions[k].post_interaction.get_action() for k in activated_keys],
+                'interaction': [self._composite_interactions[k].post_interaction.pre_key() for k in activated_keys]
+                }
+        activated_df = pd.DataFrame(data)
 
-        # The sum weight per action
-        grouped_df = self.selection_df.groupby('action').agg({'weight': 'sum'}).reset_index()
-        self.selection_df = self.selection_df.merge(grouped_df, on='action', suffixes=('', '_sum'))
-        # self.selection_df["sum_weight"] = self.selection_df.groupby("action")["weight"].transform("sum")
+        # Create the selection dataframe from the primitive and the activated dataframes
+        df = pd.concat([self.primitive_df, activated_df], ignore_index=True)
 
-        # Compute the proclivity
-        self.selection_df['proclivity'] = self.selection_df["weight_sum"] * self.selection_df['E(Va)']
+        # Compute the proclivity for each action
+        df['proclivity'] = df['weight'] * df['post_valence']
+        grouped_df = df.groupby('action').agg({'proclivity': 'sum'}).reset_index()
+        df = df.merge(grouped_df, on='action', suffixes=('', '_sum'))
 
-        # Select the action that has the highest proclivity
-        max_index = self.selection_df['proclivity'].idxmax()
-        intended_interaction_key = self.selection_df.loc[max_index, ['intended']].values[0]
-        print(f"Intended max proclivity {intended_interaction_key}")
-        self._intended_interaction = self._interactions[intended_interaction_key]
+        # Find the most probable outcome for each action
+        max_weight_df = df.loc[df.groupby('action')['weight'].idxmax(), ['action', 'interaction']].reset_index(
+            drop=True)
+        max_weight_df.columns = ['action', 'intended']
+        df = df.merge(max_weight_df, on='action')
 
-    def select_intended_interaction2(self):
-        """Selects the intended interaction from the proposed dataframe"""
         # Find the first row that has the highest proclivity
-        max_index = self.selection_df['E(Va)'].idxmax()
-        intended_interaction_key = self.selection_df.loc[max_index, ['intended']].values[0]
-        print(f"Intended Max E(Va) {intended_interaction_key}")
+        max_index = df['proclivity_sum'].idxmax()
+        intended_interaction_key = df.loc[max_index, ['intended']].values[0]
         self._intended_interaction = self._interactions[intended_interaction_key]
+        print("Intended", self._intended_interaction)
+
+        # Store the selection dataframe for printing
+        self.selection_df = df.copy()
 
 
 class Environment6:
@@ -377,5 +404,6 @@ if __name__ == '__main__':
         print(f"\n*** STEP {step} ***\n")
         action = a.action(outcome)
         outcome = e.outcome(action)
+        # print(a.selection_df[['composite', 'weight', 'post_valence', 'action', 'proclivity', 'proclivity_sum']])
         print(a.selection_df)
         e.display()
