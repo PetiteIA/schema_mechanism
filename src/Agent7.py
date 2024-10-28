@@ -1,13 +1,15 @@
+# The solution to the notebook Agent7.ipynb
+
 import pandas as pd
 import numpy as np
 
 
 class Interaction:
     """An interaction is a tuple (action, outcome) with a valence"""
-    def __init__(self, action, outcome, valence):
-        self._action = action
-        self._outcome = outcome
-        self._valence = valence
+    def __init__(self, _action, _outcome, _valence):
+        self._action = _action
+        self._outcome = _outcome
+        self._valence = _valence
 
     def get_action(self):
         """Return the action"""
@@ -48,14 +50,9 @@ class Interaction:
         else:
             return False
 
-    # def get_valence_series(self):
-    #     """Retyrb the valence in a list """
-    #     return [self._valence]
-
 
 class CompositeInteraction:
     """A composite interaction is a tuple (pre_interaction, post_interaction) and a weight"""
-
     def __init__(self, pre_interaction, post_interaction):
         self.pre_interaction = pre_interaction
         self.post_interaction = post_interaction
@@ -120,15 +117,16 @@ class Agent:
         self._previous_composite_interaction = None
         # Create a dataframe of default primitive interactions
         default_interactions = [interaction for interaction in _interactions if interaction.get_outcome() == 0]
-        data = {'proposed': [i.key() for i in default_interactions],
-                'E(Vi)': [0.] * len(default_interactions),
-                'action': [i.get_action() for i in default_interactions],
-                'E(Va)': [0.] * len(default_interactions),
+        data = {'composite': [np.nan] * len(default_interactions),
+                'weight': [0] * len(default_interactions),
+                'action': [i.get_primitive_action() for i in default_interactions],
                 'interaction': [i.key() for i in default_interactions],
-                'weight': [0] * len(default_interactions)}
+                'valence': [i.get_valence() for i in default_interactions],
+                'decision': [i.get_action() for i in default_interactions],
+                'proclivity': [0] * len(default_interactions)}
         self.primitive_df = pd.DataFrame(data)
         # Store the selection dataframe as a class attribute so we can display it in the notebook
-        self.selection_df = None
+        self.proposed_df = None
 
     def action(self, _outcome):
         """Implement the agent's policy"""
@@ -147,11 +145,12 @@ class Agent:
         # Call the learning mechanism
         self.learn()
 
-        # Calculate the proposed dataframe
-        self.calculate_proposed_df()
+        # Create the proposed dataframe
+        self.create_proposed_df()
+        self.aggregate_propositions()
 
         # Select the intended primitive interaction
-        self.select_intended_interaction()
+        self.decide()
 
         return self._intended_interaction.get_action()
 
@@ -165,148 +164,65 @@ class Agent:
         self.learn_composite_interaction(self._penultimate_interaction, self._last_composite_interaction)
 
     def learn_composite_interaction(self, pre_interaction, post_interaction):
+        """Record or reinforce the composite interaction made of (pre_interaction, post_interaction)"""
         if pre_interaction is None:
             return None
         else:
-            # Record or reinforce the first level composite interaction
+            # If the pre interaction exist
             composite_interaction = CompositeInteraction(pre_interaction, post_interaction)
             if composite_interaction.key() not in self._composite_interactions:
+                # Add the composite interaction to memory
                 self._composite_interactions[composite_interaction.key()] = composite_interaction
                 print(f"Learning {composite_interaction}")
                 return composite_interaction
             else:
+                # Reinforce the existing composite interaction and return it
                 self._composite_interactions[composite_interaction.key()].reinforce()
                 print(f"Reinforcing {self._composite_interactions[composite_interaction.key()]}")
-                # Retrieve the existing composite interaction
                 return self._composite_interactions[composite_interaction.key()]
 
-    def calculate_proposed_df(self):
-        """Select the action that has the highest expected valence"""
-
-        # The activated composite interactions
-        activated_keys = [composite_interaction.key() for composite_interaction in self._composite_interactions.values()
+    def create_proposed_df(self):
+        """Create the proposed dataframe from the activated interactions"""
+        # The list of activated interaction that match the current context
+        activated_keys = [composite_interaction.key() for composite_interaction in
+                          self._composite_interactions.values()
                           if composite_interaction.pre_interaction == self._last_interaction or
                           composite_interaction.pre_interaction == self._last_composite_interaction]
-
-        # Create the dataframe of sequences
-        series_df = pd.DataFrame(columns=['proposed', 'weight', 'a_t', 'i_t', 'a_t+1', 'i_t+1'])
-        for k in activated_keys:
-            new_row = {'proposed': self._composite_interactions[k].post_interaction.key(),
-                       'weight': self._composite_interactions[k].weight,
-                       'a_t': self._composite_interactions[k].post_interaction.get_primitive_action()}
-            if type(self._composite_interactions[k].post_interaction) == Interaction:
-                new_row['i_t'] = self._composite_interactions[k].post_interaction.key()
-            else:
-                new_row['i_t'] = self._composite_interactions[k].post_interaction.pre_interaction.key()
-                new_row['a_t+1'] = self._composite_interactions[k].post_interaction.post_interaction.get_primitive_action()
-                new_row['i_t+1'] = self._composite_interactions[k].post_interaction.post_interaction.key()
-            series_df = pd.concat([series_df, pd.DataFrame([new_row])], ignore_index=True)
-        # print(series_df)
-
-        # The probability P(it|at)
-        total_by_i = series_df.groupby(["a_t", "i_t"], as_index=False)["weight"].sum().rename(columns={"weight": "i_weight"})
-        total_by_a = series_df.groupby("a_t", as_index=False)["weight"].sum().rename(columns={"weight": "a_weight"})
-        p_t_df = pd.merge(total_by_i, total_by_a, on="a_t")
-        p_t_df['P(it|at)'] = p_t_df['i_weight'] / p_t_df['a_weight']
-        # print(p_t_df[['a_t', 'i_t', 'P(it|at)']])
-
-        # The probability P(it+1|it, at+1)
-        series_filtered = series_df.dropna(subset=["i_t+1"])
-        total_by_i = series_filtered.groupby(["i_t", "a_t+1", "i_t+1"], as_index=False)["weight"].sum().rename(columns={"weight": "t+1_weight"})
-        total_by_a = series_filtered.groupby(["i_t", "a_t+1"], as_index=False)["weight"].sum().rename(columns={"weight": "t_weight"})
-        p_t1_df = pd.merge(total_by_i, total_by_a, on=["i_t", "a_t+1"])
-        p_t1_df['P(it+1|it, at+1)'] = p_t1_df['t+1_weight'] / p_t1_df['t_weight']
-        # print(p_t1_df[['i_t', 'a_t+1', 'i_t+1', 'P(it+1|it, at+1)']])  # [['i_t', 'a_t+1', 'i_t+1', 'P(it+1|it, at+1)']]
-
-        # Create the dataframe of proposed interactions
-        data = {'proposed': [self._composite_interactions[k].post_interaction.key() for k in activated_keys],
-                'E(Vi)': [0.] * len(activated_keys),
-                'action': [self._composite_interactions[k].post_interaction.get_primitive_action() for k in
-                           activated_keys],
-                'E(Va)': [0.] * len(activated_keys),
+        data = {'composite': activated_keys,
                 'weight': [self._composite_interactions[k].weight for k in activated_keys],
-                'interaction': [self._composite_interactions[k].post_interaction.pre_key() for k in activated_keys]
+                'action': [self._composite_interactions[k].post_interaction.get_primitive_action() for k in activated_keys],
+                'interaction': [self._composite_interactions[k].post_interaction.pre_key() for k in activated_keys],
+                'valence': [self._composite_interactions[k].post_interaction.get_valence() for k in activated_keys],
+                'decision': [self._composite_interactions[k].post_interaction.get_action() for k in activated_keys],
                 }
-        expected_df = pd.DataFrame(data)
-        # Add default interactions
-        expected_df = pd.concat([self.primitive_df, expected_df], ignore_index=True)
+        activated_df = pd.DataFrame(data)
 
-        # Shorten the composite interactions whose post_interaction have a negative valence
-        for i, k in expected_df["proposed"].items():
-            if k in self._composite_interactions and self._composite_interactions[k].post_interaction.get_valence() < 0:
-                expected_df.at[i, "proposed"] = self._composite_interactions[k].pre_interaction.key()
+        # Create the selection dataframe from the primitive and the activated dataframes
+        self.proposed_df = pd.concat([self.primitive_df, activated_df], ignore_index=True)
 
-        # Remove the interactions that are the beginning of a longer interaction
-        to_remove = set()
-        for i, k1 in expected_df["proposed"].items():
-            for j, k2 in expected_df["proposed"].items():
-                if i not in to_remove and j not in to_remove and i != j:
-                    if k1 in self._composite_interactions:
-                        s1 = pd.Series(self._composite_interactions[k1].get_primitive_series())
-                    else:
-                        s1 = pd.Series(k1)
-                    if k2 in self._composite_interactions:
-                        s2 = pd.Series(self._composite_interactions[k2].get_primitive_series())
-                    else:
-                        s2 = pd.Series(k2)
-                    if len(s1) <= len(s2):
-                        if s1.equals(s2.iloc[:len(s1)]):
-                            # print(f"Remove {s1.tolist()} from {i} to {j} weight {expected_df.at[i, 'weight']}")
-                            to_remove.add(i)  # Mark the sequence to be removed
-                            expected_df.at[j, "weight"] += expected_df.at[i, "weight"]
-                        elif s2.equals(s1.iloc[:len(s2)]):
-                            # print(f"Remove {s2.tolist()} from {j} to {i} weight {expected_df.at[j, 'weight']}")
-                            to_remove.add(j)  # Mark the sequence to be removed
-                            expected_df.at[i, "weight"] += expected_df.at[j, "weight"]
-        expected_df = expected_df.drop(index=to_remove)
-        # Compute the expected valence of interactions
-        for i, k in expected_df["proposed"].items():
-            if k in self._interactions:
-                first_row = p_t_df.loc[p_t_df["i_t"] == k].head(1)  # ["P(it|at)"].values[0]
-                p = first_row["P(it|at)"].values[0] if not first_row.empty else 0
-                # print(f"E(vi) of {k} probability {p}")
-                expected_df.at[i, "E(Vi)"] = p * self._interactions[k].get_valence()
-            else:
-                k1 = self._composite_interactions[k].pre_interaction.key()
-                p1 = p_t_df.loc[p_t_df["i_t"] == k1].head(1)["P(it|at)"].values[0]
-                k2 = self._composite_interactions[k].post_interaction.key()
-                p2 = p_t1_df.loc[p_t1_df["i_t+1"] == k2].head(1)["P(it+1|it, at+1)"].values[0]
-                expected_df.at[i, "E(Vi)"] = p1 * (self._interactions[k1].get_valence()
-                                                   + p2 * self._interactions[k2].get_valence())
-        # The sum expected valence per action
-        expected_df["E(Va)"] = expected_df.groupby("action")["E(Vi)"].transform("sum")
+        # # Compute the proclivity for each proposition
+        self.proposed_df['proclivity'] = self.proposed_df['weight'] * self.proposed_df['valence']
+        # self.proposed_df = df.copy()
 
-        # Find the most probable outcome for each action
-        max_weight_df = expected_df.loc[expected_df.groupby('action')['weight'].idxmax(), ['action', 'interaction']].reset_index(
+    def aggregate_propositions(self):
+        """Aggregate the proclivity"""
+        # Compute the proclivity for each action
+        grouped_df = self.proposed_df.groupby('decision').agg({'proclivity': 'sum'}).reset_index()
+        self.proposed_df = self.proposed_df.merge(grouped_df, on='decision', suffixes=('', '_agg'))
+
+        # Find the most probable primitive interaction for each action
+        max_weight_df = self.proposed_df.loc[self.proposed_df.groupby('decision')['weight'].idxmax(), ['decision', 'interaction']].reset_index(
             drop=True)
-        max_weight_df.columns = ['action', 'intended']
-        expected_df = expected_df.merge(max_weight_df, on='action')
+        max_weight_df.columns = ['decision', 'intended']
+        self.proposed_df = self.proposed_df.merge(max_weight_df, on='decision')
 
-        # Store the dataframe for printing
-        self.selection_df = expected_df.copy()
-
-    def select_intended_interaction(self):
-
-        # The sum weight per action
-        grouped_df = self.selection_df.groupby('action').agg({'weight': 'sum'}).reset_index()
-        self.selection_df = self.selection_df.merge(grouped_df, on='action', suffixes=('', '_sum'))
-        # self.selection_df["sum_weight"] = self.selection_df.groupby("action")["weight"].transform("sum")
-
-        # Compute the proclivity
-        self.selection_df['proclivity'] = self.selection_df["weight_sum"] * self.selection_df['E(Va)']
-
-        # Select the action that has the highest proclivity
-        max_index = self.selection_df['proclivity'].idxmax()
-        intended_interaction_key = self.selection_df.loc[max_index, ['intended']].values[0]
-        print(f"Intended max proclivity {intended_interaction_key}")
-        self._intended_interaction = self._interactions[intended_interaction_key]
-
-    def select_intended_interaction2(self):
+    def decide(self):
         """Selects the intended interaction from the proposed dataframe"""
         # Find the first row that has the highest proclivity
-        max_index = self.selection_df['E(Va)'].idxmax()
-        intended_interaction_key = self.selection_df.loc[max_index, ['intended']].values[0]
-        print(f"Intended Max E(Va) {intended_interaction_key}")
+        max_index = self.proposed_df['proclivity_agg'].idxmax()
+        # Find the intended interaction corresponding to the action that has the highest proclivity
+        intended_interaction_key = self.proposed_df.loc[max_index, ['intended']].values[0]
+        print("Intended", self._intended_interaction)
         self._intended_interaction = self._interactions[intended_interaction_key]
 
 
@@ -317,37 +233,37 @@ class Environment6:
         self.grid = np.array([[1, 0, 0, 1]])
         self.position = 1
 
-    def outcome(self, action):
+    def outcome(self, _action):
         """Take the action and generate the next outcome """
-        if action == 0:
+        if _action == 0:
             # Move left
             if self.position > 1:
                 # No bump
                 self.position -= 1
                 self.grid[0, 3] = 1
-                outcome = 0
+                _outcome = 0
             elif self.grid[0, 0] == 1:
                 # First bump
-                outcome = 1
+                _outcome = 1
                 self.grid[0, 0] = 2
             else:
                 # Subsequent bumps
-                outcome = 0
+                _outcome = 0
         else:
             # Move right
             if self.position < 2:
                 # No bump
                 self.position += 1
                 self.grid[0, 0] = 1
-                outcome = 0
+                _outcome = 0
             elif self.grid[0, 3] == 1:
                 # First bump
-                outcome = 1
+                _outcome = 1
                 self.grid[0, 3] = 2
             else:
                 # Subsequent bumps
-                outcome = 0
-        return outcome
+                _outcome = 0
+        return _outcome
 
     def display(self):
         """Display the grid"""
@@ -356,8 +272,8 @@ class Environment6:
         print(display)
 
 
-# Instanciate the agent in Environment6
-pd.set_option('display.max_columns', 8)
+# Instantiate the agent in Environment6
+pd.set_option('display.max_columns', 10)
 interactions = [
     Interaction(0, 0, -1),
     Interaction(0, 1, 1),
@@ -377,5 +293,5 @@ if __name__ == '__main__':
         print(f"\n*** STEP {step} ***\n")
         action = a.action(outcome)
         outcome = e.outcome(action)
-        print(a.selection_df)
+        print(a.proposed_df)
         e.display()
