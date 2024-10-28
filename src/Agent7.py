@@ -99,9 +99,9 @@ class CompositeInteraction:
         else:
             return False
 
-    def get_valence_series(self):
-        """"Return the list of valences of primitive interactions"""
-        return self.pre_interaction.get_valence_series() + self.post_interaction.get_valence_series()
+    # def get_valence_series(self):
+    #     """"Return the list of valences of primitive interactions"""
+    #     return self.pre_interaction.get_valence_series() + self.post_interaction.get_valence_series()
 
 
 class Agent:
