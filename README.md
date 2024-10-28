@@ -13,7 +13,7 @@ This repository offers self-guided tutorials on designing an autonomous artifici
 
 # Tutorial list
 
-Jupyter notebooks that you can successively run in Google Colab:
+Notebooks that you can successively run in Google Colab or any jupyter engine:
 
 * [Agent 1](notebooks/agent1.ipynb): the agent who avoided the ordinary
 * [Agent 2](notebooks/agent2.ipynb): the agent who thrived on good vibes

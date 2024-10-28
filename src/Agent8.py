@@ -1,4 +1,4 @@
-# The solution to the notebook Agent7.ipynb
+# The solution to the notebook Agent8.ipynb
 
 import pandas as pd
 import numpy as np
@@ -35,6 +35,10 @@ class Interaction:
         """Return the key. Used for compatibility with CompositeInteraction"""
         return self.key()
 
+    def get_primitive_list(self):
+        """"Return the key in a list"""
+        return [self.key()]
+
     def __str__(self):
         """ Print interaction in the form '<action><outcome:<valence>' for debug."""
         return f"{self._action}{self._outcome}:{self._valence}"
@@ -48,9 +52,10 @@ class Interaction:
 
 
 class CompositeInteraction:
-    """A composite interaction is a tuple (pre_interaction, post_interaction) and a weight"""
-    def __init__(self, pre_interaction, post_interaction):
+    """A composite interaction is a tuple (pre_interaction, decision, post_interaction) and a weight"""
+    def __init__(self, pre_interaction, decision, post_interaction):
         self.pre_interaction = pre_interaction
+        self.decision = decision
         self.post_interaction = post_interaction
         self.weight = 1
         self.isActivated = False
@@ -72,21 +77,26 @@ class CompositeInteraction:
         self.weight += 1
 
     def key(self):
-        """ The key to find this interaction in the dictionary is the string '<pre_interaction>,<post_interaction>'. """
-        return f"({self.pre_interaction.key()},{self.post_interaction.key()})"
+        """ The key to find this interaction in the dictionary is the string
+        '<pre_interaction>,<decision>,<post_interaction>'. """
+        return f"({self.pre_interaction.key()},{self.decision},{self.post_interaction.key()})"
 
     def pre_key(self):
         """Return the key of the pre_interaction"""
         return self.pre_interaction.pre_key()
 
+    def get_primitive_list(self):
+        """"Return the list of primitive keys"""
+        return self.pre_interaction.get_primitive_list() + self.post_interaction.get_primitive_list()
+
     def __str__(self):
         """ Print the interaction in the Newick tree format (pre_interaction, post_interaction: valence) """
-        return f"({self.pre_interaction}, {self.post_interaction}: {self.weight})"
+        return f"({self.pre_interaction}, {self.decision}, {self.post_interaction}: {self.weight})"
 
     def __eq__(self, other):
-        """ Interactions are equal if they have the same pre and post interactions """
+        """ Interactions are equal if they have the same keys """
         if isinstance(other, self.__class__):
-            return (self.pre_interaction == other.pre_interaction) and (self.post_interaction == other.post_interaction)
+            return self.pre_interaction.key() == other.key()
         else:
             return False
 
@@ -97,6 +107,7 @@ class Agent:
         self._interactions = {interaction.key(): interaction for interaction in _interactions}
         self._composite_interactions = {}
         self._intended_interaction = self._interactions["00"]
+        self._decision = "0"
         self._last_interaction = None
         self._previous_interaction = None
         self._penultimate_interaction = None
@@ -144,19 +155,19 @@ class Agent:
     def learn(self):
         """Learn the composite interactions"""
         # First level of composite interactions
-        self._last_composite_interaction = self.learn_composite_interaction(self._previous_interaction,
-                                                                            self._last_interaction)
+        self._last_composite_interaction = self.learn_composite_interaction(
+            self._previous_interaction, self._decision, self._last_interaction)
         # Second level of composite interactions
-        self.learn_composite_interaction(self._previous_composite_interaction, self._last_interaction)
-        self.learn_composite_interaction(self._penultimate_interaction, self._last_composite_interaction)
+        self.learn_composite_interaction(self._previous_composite_interaction, self._decision, self._last_interaction)
+        self.learn_composite_interaction(self._penultimate_interaction, self._decision, self._last_composite_interaction)
 
-    def learn_composite_interaction(self, pre_interaction, post_interaction):
+    def learn_composite_interaction(self, pre_interaction, decision, post_interaction):
         """Record or reinforce the composite interaction made of (pre_interaction, post_interaction)"""
         if pre_interaction is None:
             return None
         else:
             # If the pre interaction exist
-            composite_interaction = CompositeInteraction(pre_interaction, post_interaction)
+            composite_interaction = CompositeInteraction(pre_interaction, decision, post_interaction)
             if composite_interaction.key() not in self._composite_interactions:
                 # Add the composite interaction to memory
                 self._composite_interactions[composite_interaction.key()] = composite_interaction
@@ -189,13 +200,14 @@ class Agent:
 
         # # Compute the proclivity for each proposition
         self.proposed_df['proclivity'] = self.proposed_df['weight'] * self.proposed_df['valence']
-        # self.proposed_df = df.copy()
 
     def aggregate_propositions(self):
         """Aggregate the proclivity"""
         # Compute the proclivity for each action
         grouped_df = self.proposed_df.groupby('decision').agg({'proclivity': 'sum'}).reset_index()
         self.proposed_df = self.proposed_df.merge(grouped_df, on='decision', suffixes=('', '_agg'))
+        # Sort by descending order of proclivity
+        self.proposed_df = self.proposed_df.sort_values(by=['proclivity_agg', 'decision'], ascending=[False, False])
 
         # Find the most probable primitive interaction for each action
         max_weight_df = self.proposed_df.loc[self.proposed_df.groupby('decision')['weight'].idxmax(), ['decision', 'interaction']].reset_index(
@@ -213,50 +225,66 @@ class Agent:
         self._intended_interaction = self._interactions[intended_interaction_key]
 
 
-class Environment6:
+class Environment7:
     """ The grid """
     def __init__(self):
-        """ Initialize the grid """
+        """ Initialize the grid and the agent's pose """
         self.grid = np.array([[1, 0, 0, 1]])
         self.position = 1
+        self.direction = 0
 
     def outcome(self, _action):
         """Take the action and generate the next outcome """
         if _action == 0:
-            # Move left
-            if self.position > 1:
-                # No bump
-                self.position -= 1
-                self.grid[0, 3] = 1
-                _outcome = 0
-            elif self.grid[0, 0] == 1:
-                # First bump
-                _outcome = 1
-                self.grid[0, 0] = 2
+            # Move forward
+            if self.direction == 0:
+                # Move to the left
+                if self.position > 1:
+                    # No bump
+                    self.position -= 1
+                    self.grid[0, 3] = 1
+                    _outcome = 0
+                elif self.grid[0, 0] == 1:
+                    # First bump
+                    _outcome = 1
+                    self.grid[0, 0] = 2
+                else:
+                    # Subsequent bumps
+                    _outcome = 0
             else:
-                # Subsequent bumps
-                _outcome = 0
+                # Move to the right
+                if self.position < 2:
+                    # No bump
+                    self.position += 1
+                    self.grid[0, 0] = 1
+                    _outcome = 0
+                elif self.grid[0, 3] == 1:
+                    # First bump
+                    _outcome = 1
+                    self.grid[0, 3] = 2
+                else:
+                    # Subsequent bumps
+                    _outcome = 0
         else:
-            # Move right
-            if self.position < 2:
-                # No bump
-                self.position += 1
-                self.grid[0, 0] = 1
-                _outcome = 0
-            elif self.grid[0, 3] == 1:
-                # First bump
-                _outcome = 1
-                self.grid[0, 3] = 2
+            # Turn 180°
+            _outcome = 0
+            if self.direction == 0:
+                self.direction = 1
             else:
-                # Subsequent bumps
-                _outcome = 0
+                self.direction = 0
         return _outcome
 
     def display(self):
         """Display the grid"""
-        display = self.grid.copy()
-        display[0, self.position] = 8
-        print(display)
+        int_to_char = {0: '-', 1: '|', 2: '*'}
+        display_array = np.vectorize(int_to_char.get)(self.grid)
+        if self.direction == 0:
+            # Display agent to the left
+            display_array[0, self.position] = "<"
+        else:
+            # Display agent to the right
+            display_array[0, self.position] = ">"
+        print(f"Environment: {' '.join(display_array[0])}")
 
 
 # Instantiate the agent in Environment6
@@ -268,7 +296,7 @@ interactions = [
     Interaction(1, 1, 1)
 ]
 a = Agent(interactions)
-e = Environment6()
+e = Environment7()
 
 # Run the interaction loop
 outcome = 0
