@@ -62,8 +62,8 @@ class CompositeInteraction:
 
     def get_decision(self):
         """Return the sequence of decisions"""
-        return f"{self.pre_interaction.key()}{self.post_interaction.get_decision()}"
-        return f"{self.pre_interaction.get_decision()}{self.post_interaction.get_decision()}"
+        return self.decision
+        # return f"{self.pre_interaction.key()}{self.post_interaction.get_decision()}"
 
     def get_primitive_action(self):
         """Return the primitive action"""
@@ -80,6 +80,7 @@ class CompositeInteraction:
     def key(self):
         """ The key to find this interaction in the dictionary is the string
         '<pre_interaction>,<decision>,<post_interaction>'. """
+        # return f"({self.pre_interaction.key()},{self.post_interaction.key()})"
         return f"({self.pre_interaction.key()},{self.decision},{self.post_interaction.key()})"
 
     def pre_key(self):
@@ -153,10 +154,14 @@ class Agent:
         """Learn the composite interactions"""
         # First level of composite interactions
         self._last_composite_interaction = self.learn_composite_interaction(
-            self._previous_interaction, self._decision, self._last_interaction)
+            self._previous_interaction, self._last_interaction.get_decision(), self._last_interaction)
         # Second level of composite interactions
-        self.learn_composite_interaction(self._previous_composite_interaction, self._decision, self._last_interaction)
-        self.learn_composite_interaction(self._penultimate_interaction, self._decision, self._last_composite_interaction)
+        self.learn_composite_interaction(self._previous_composite_interaction, self._last_interaction.get_decision(),
+                                         self._last_interaction)
+        if self._last_composite_interaction is not None:
+            decision = f"{self._last_composite_interaction.pre_interaction.key()}{self._last_composite_interaction.post_interaction.get_decision()}"
+            self.learn_composite_interaction(self._penultimate_interaction, decision, self._last_composite_interaction)
+        # self.learn_composite_interaction(self._penultimate_interaction, self._decision, self._last_composite_interaction)
 
     def learn_composite_interaction(self, pre_interaction, decision, post_interaction):
         """Record or reinforce the composite interaction made of (pre_interaction, post_interaction)"""
@@ -185,10 +190,11 @@ class Agent:
                           composite_interaction.pre_interaction == self._last_composite_interaction]
         data = {'activated': activated_keys,
                 'weight': [self._composite_interactions[k].weight for k in activated_keys],
-                'action': [self._composite_interactions[k].post_interaction.get_primitive_action() for k in activated_keys],
+                'action': [self._composite_interactions[k].post_interaction.get_primitive_action() for k in
+                           activated_keys],
                 'interaction': [self._composite_interactions[k].post_interaction.pre_key() for k in activated_keys],
                 'valence': [self._composite_interactions[k].post_interaction.get_valence() for k in activated_keys],
-                'decision': [self._composite_interactions[k].post_interaction.get_decision() for k in activated_keys],
+                'decision': [self._composite_interactions[k].get_decision() for k in activated_keys],
                 }
         activated_df = pd.DataFrame(data)
 
@@ -207,7 +213,8 @@ class Agent:
         self.proposed_df = self.proposed_df.sort_values(by=['proclivity_agg', 'decision'], ascending=[False, False])
 
         # Find the most probable primitive interaction for each action
-        max_weight_df = self.proposed_df.loc[self.proposed_df.groupby('decision')['weight'].idxmax(), ['decision', 'interaction']].reset_index(
+        max_weight_df = self.proposed_df.loc[
+            self.proposed_df.groupby('decision')['weight'].idxmax(), ['decision', 'interaction']].reset_index(
             drop=True)
         max_weight_df.columns = ['decision', 'intended']
         self.proposed_df = self.proposed_df.merge(max_weight_df, on='decision')
@@ -217,6 +224,7 @@ class Agent:
         # Find the first row that has the highest proclivity
         max_index = self.proposed_df['proclivity_agg'].idxmax()
         self._decision = self.proposed_df.loc[max_index, ['decision']].values[0]
+
         # Find the intended interaction corresponding to the action that has the highest proclivity
         intended_interaction_key = self.proposed_df.loc[max_index, ['intended']].values[0]
         self._intended_interaction = self._interactions[intended_interaction_key]
@@ -274,7 +282,7 @@ class Environment7:
 
     def display(self):
         """Display the grid"""
-        int_to_char = {0: '-', 1: '|', 2: '*'}
+        int_to_char = {0: '.', 1: '|', 2: '*'}
         display_array = np.vectorize(int_to_char.get)(self.grid)
         if self.direction == 0:
             # Display agent to the left
@@ -285,7 +293,7 @@ class Environment7:
         print(f"Environment: {' '.join(display_array[0])}")
 
 
-# Instantiate the agent in Environment6
+# Instantiate the agent in Environment7
 pd.set_option('display.max_columns', 10)
 interactions = [
     Interaction(0, 0, -1),

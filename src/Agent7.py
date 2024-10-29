@@ -261,7 +261,7 @@ class Environment6:
 
     def display(self):
         """Display the grid"""
-        int_to_char = {0: '-', 1: '|', 2: '*'}
+        int_to_char = {0: '.', 1: '|', 2: '*'}
         display_array = np.vectorize(int_to_char.get)(self.grid)
         display_array[0, self.position] = "o"
         print(f"Environment: {' '.join(display_array[0])}")
