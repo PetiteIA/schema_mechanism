@@ -15,6 +15,10 @@ class Interaction:
         """Return the action"""
         return self._action
 
+    def get_decision(self):
+        """Return the decision key"""
+        return f"a{self._action}"
+
     def get_primitive_action(self):
         """Return the action for compatibility with CompositeInteraction"""
         return self._action
@@ -34,10 +38,6 @@ class Interaction:
     def pre_key(self):
         """Return the key. Used for compatibility with CompositeInteraction"""
         return self.key()
-
-    def get_primitive_list(self):
-        """"Return the key in a list"""
-        return [self.key()]
 
     def __str__(self):
         """ Print interaction in the form '<action><outcome:<valence>' for debug."""
@@ -60,12 +60,13 @@ class CompositeInteraction:
         self.weight = 1
         self.isActivated = False
 
-    def get_action(self):
-        """Return the action of the pre interaction"""
-        return self.key()
+    def get_decision(self):
+        """Return the sequence of decisions"""
+        return f"{self.pre_interaction.key()}{self.post_interaction.get_decision()}"
+        return f"{self.pre_interaction.get_decision()}{self.post_interaction.get_decision()}"
 
     def get_primitive_action(self):
-        """Return the primite action"""
+        """Return the primitive action"""
         return self.pre_interaction.get_primitive_action()
 
     def get_valence(self):
@@ -85,10 +86,6 @@ class CompositeInteraction:
         """Return the key of the pre_interaction"""
         return self.pre_interaction.pre_key()
 
-    def get_primitive_list(self):
-        """"Return the list of primitive keys"""
-        return self.pre_interaction.get_primitive_list() + self.post_interaction.get_primitive_list()
-
     def __str__(self):
         """ Print the interaction in the Newick tree format (pre_interaction, post_interaction: valence) """
         return f"({self.pre_interaction}, {self.decision}, {self.post_interaction}: {self.weight})"
@@ -96,7 +93,7 @@ class CompositeInteraction:
     def __eq__(self, other):
         """ Interactions are equal if they have the same keys """
         if isinstance(other, self.__class__):
-            return self.pre_interaction.key() == other.key()
+            return self.key() == other.key()
         else:
             return False
 
@@ -107,7 +104,7 @@ class Agent:
         self._interactions = {interaction.key(): interaction for interaction in _interactions}
         self._composite_interactions = {}
         self._intended_interaction = self._interactions["00"]
-        self._decision = "0"
+        self._decision = None  # "0"
         self._last_interaction = None
         self._previous_interaction = None
         self._penultimate_interaction = None
@@ -120,7 +117,7 @@ class Agent:
                 'action': [i.get_primitive_action() for i in default_interactions],
                 'interaction': [i.key() for i in default_interactions],
                 'valence': [i.get_valence() for i in default_interactions],
-                'decision': [i.get_action() for i in default_interactions],
+                'decision': [i.get_decision() for i in default_interactions],
                 'proclivity': [0] * len(default_interactions)}
         self.primitive_df = pd.DataFrame(data)
         # Store the selection dataframe as a class attribute so we can display it in the notebook
@@ -191,7 +188,7 @@ class Agent:
                 'action': [self._composite_interactions[k].post_interaction.get_primitive_action() for k in activated_keys],
                 'interaction': [self._composite_interactions[k].post_interaction.pre_key() for k in activated_keys],
                 'valence': [self._composite_interactions[k].post_interaction.get_valence() for k in activated_keys],
-                'decision': [self._composite_interactions[k].post_interaction.get_action() for k in activated_keys],
+                'decision': [self._composite_interactions[k].post_interaction.get_decision() for k in activated_keys],
                 }
         activated_df = pd.DataFrame(data)
 
@@ -219,10 +216,11 @@ class Agent:
         """Selects the intended interaction from the proposed dataframe"""
         # Find the first row that has the highest proclivity
         max_index = self.proposed_df['proclivity_agg'].idxmax()
+        self._decision = self.proposed_df.loc[max_index, ['decision']].values[0]
         # Find the intended interaction corresponding to the action that has the highest proclivity
         intended_interaction_key = self.proposed_df.loc[max_index, ['intended']].values[0]
-        print("Intended", self._intended_interaction)
         self._intended_interaction = self._interactions[intended_interaction_key]
+        print(f"Decision {self._decision}, Intended {self._intended_interaction}")
 
 
 class Environment7:

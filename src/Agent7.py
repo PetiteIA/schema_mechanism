@@ -15,6 +15,10 @@ class Interaction:
         """Return the action"""
         return self._action
 
+    def get_decision(self):
+        """Return the decision key"""
+        return f"a{self._action}"
+
     def get_primitive_action(self):
         """Return the action for compatibility with CompositeInteraction"""
         return self._action
@@ -55,12 +59,13 @@ class CompositeInteraction:
         self.weight = 1
         self.isActivated = False
 
-    def get_action(self):
-        """Return the action of the pre interaction"""
-        return self.key()
+    def get_decision(self):
+        """Return the sequence of decisions"""
+        return f"{self.pre_interaction.key()}{self.post_interaction.get_decision()}"
+        # return self.key()
 
     def get_primitive_action(self):
-        """Return the primite action"""
+        """Return the primitive action"""
         return self.pre_interaction.get_primitive_action()
 
     def get_valence(self):
@@ -84,9 +89,9 @@ class CompositeInteraction:
         return f"({self.pre_interaction}, {self.post_interaction}: {self.weight})"
 
     def __eq__(self, other):
-        """ Interactions are equal if they have the same pre and post interactions """
+        """ Interactions are equal if they have the same keys """
         if isinstance(other, self.__class__):
-            return (self.pre_interaction == other.pre_interaction) and (self.post_interaction == other.post_interaction)
+            return self.key() == other.key()
         else:
             return False
 
@@ -109,7 +114,7 @@ class Agent:
                 'action': [i.get_primitive_action() for i in default_interactions],
                 'interaction': [i.key() for i in default_interactions],
                 'valence': [i.get_valence() for i in default_interactions],
-                'decision': [i.get_action() for i in default_interactions],
+                'decision': [i.get_decision() for i in default_interactions],
                 'proclivity': [0] * len(default_interactions)}
         self.primitive_df = pd.DataFrame(data)
         # Store the selection dataframe as a class attribute so we can display it in the notebook
@@ -180,7 +185,7 @@ class Agent:
                 'action': [self._composite_interactions[k].post_interaction.get_primitive_action() for k in activated_keys],
                 'interaction': [self._composite_interactions[k].post_interaction.pre_key() for k in activated_keys],
                 'valence': [self._composite_interactions[k].post_interaction.get_valence() for k in activated_keys],
-                'decision': [self._composite_interactions[k].post_interaction.get_action() for k in activated_keys],
+                'decision': [self._composite_interactions[k].post_interaction.get_decision() for k in activated_keys],
                 }
         activated_df = pd.DataFrame(data)
 
@@ -196,6 +201,8 @@ class Agent:
         # Compute the proclivity for each action
         grouped_df = self.proposed_df.groupby('decision').agg({'proclivity': 'sum'}).reset_index()
         self.proposed_df = self.proposed_df.merge(grouped_df, on='decision', suffixes=('', '_agg'))
+        # Sort by descending order of proclivity
+        self.proposed_df = self.proposed_df.sort_values(by=['proclivity_agg', 'decision'], ascending=[False, False])
 
         # Find the most probable primitive interaction for each action
         max_weight_df = self.proposed_df.loc[self.proposed_df.groupby('decision')['weight'].idxmax(), ['decision', 'interaction']].reset_index(
@@ -209,8 +216,8 @@ class Agent:
         max_index = self.proposed_df['proclivity_agg'].idxmax()
         # Find the intended interaction corresponding to the action that has the highest proclivity
         intended_interaction_key = self.proposed_df.loc[max_index, ['intended']].values[0]
-        print("Intended", self._intended_interaction)
         self._intended_interaction = self._interactions[intended_interaction_key]
+        print("Intended", self._intended_interaction)
 
 
 class Environment6:
@@ -254,9 +261,10 @@ class Environment6:
 
     def display(self):
         """Display the grid"""
-        display = self.grid.copy()
-        display[0, self.position] = 8
-        print(display)
+        int_to_char = {0: '-', 1: '|', 2: '*'}
+        display_array = np.vectorize(int_to_char.get)(self.grid)
+        display_array[0, self.position] = "o"
+        print(f"Environment: {' '.join(display_array[0])}")
 
 
 # Instantiate the agent in Environment6
@@ -276,9 +284,9 @@ outcome = 0
 if __name__ == '__main__':
     """ The main loop controlling the interaction of the agent with the environment """
     outcome = 0
-    for step in range(30):
+    for step in range(0, 30):
         print(f"\n*** STEP {step} ***\n")
+        e.display()
         action = a.action(outcome)
         outcome = e.outcome(action)
         print(a.proposed_df)
-        e.display()
