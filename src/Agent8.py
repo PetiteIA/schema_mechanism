@@ -111,6 +111,7 @@ class Agent:
         self._penultimate_interaction = None
         self._last_composite_interaction = None
         self._previous_composite_interaction = None
+        self._penultimate_composite_interaction = None
         # Create a dataframe of default primitive interactions
         default_interactions = [interaction for interaction in _interactions if interaction.get_outcome() == 0]
         data = {'activated': [np.nan] * len(default_interactions),
@@ -127,6 +128,7 @@ class Agent:
     def action(self, _outcome):
         """Implement the agent's policy"""
         # Memorize the context
+        self._penultimate_composite_interaction = self._previous_composite_interaction
         self._previous_composite_interaction = self._last_composite_interaction
         self._penultimate_interaction = self._previous_interaction
         self._previous_interaction = self._last_interaction
@@ -153,15 +155,23 @@ class Agent:
     def learn(self):
         """Learn the composite interactions"""
         # First level of composite interactions
+        # self._last_composite_interaction = self.learn_composite_interaction(
+        #     self._previous_interaction, self._last_interaction.get_decision(), self._last_interaction)
         self._last_composite_interaction = self.learn_composite_interaction(
-            self._previous_interaction, self._last_interaction.get_decision(), self._last_interaction)
+            self._previous_interaction, self._decision, self._last_interaction)
+
         # Second level of composite interactions
-        self.learn_composite_interaction(self._previous_composite_interaction, self._last_interaction.get_decision(),
-                                         self._last_interaction)
+        # self.learn_composite_interaction(self._previous_composite_interaction, self._last_interaction.get_decision(),
+        #                                  self._last_interaction)
+        self.learn_composite_interaction(
+            self._previous_composite_interaction, self._decision, self._last_interaction)
+
         if self._last_composite_interaction is not None:
             decision = f"{self._last_composite_interaction.pre_interaction.key()}{self._last_composite_interaction.post_interaction.get_decision()}"
             self.learn_composite_interaction(self._penultimate_interaction, decision, self._last_composite_interaction)
-        # self.learn_composite_interaction(self._penultimate_interaction, self._decision, self._last_composite_interaction)
+            # self.learn_composite_interaction(self._penultimate_interaction, self._decision, self._last_composite_interaction)
+            self.learn_composite_interaction(self._penultimate_composite_interaction, decision, self._last_composite_interaction)
+
 
     def learn_composite_interaction(self, pre_interaction, decision, post_interaction):
         """Record or reinforce the composite interaction made of (pre_interaction, post_interaction)"""
