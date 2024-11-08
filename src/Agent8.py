@@ -172,7 +172,6 @@ class Agent:
             # self.learn_composite_interaction(self._penultimate_interaction, self._decision, self._last_composite_interaction)
             self.learn_composite_interaction(self._penultimate_composite_interaction, decision, self._last_composite_interaction)
 
-
     def learn_composite_interaction(self, pre_interaction, decision, post_interaction):
         """Record or reinforce the composite interaction made of (pre_interaction, post_interaction)"""
         if pre_interaction is None:
@@ -281,13 +280,31 @@ class Environment7:
                 else:
                     # Subsequent bumps
                     _outcome = 0
-        else:
+        elif _action == 1:
             # Turn 180°
             _outcome = 0
             if self.direction == 0:
                 self.direction = 1
             else:
                 self.direction = 0
+        else:
+            # Touch
+            if self.direction == 0:
+                # Touch to the left
+                if self.position > 1:
+                    # touch left empty
+                    _outcome = 0
+                else:
+                    # touch left wall
+                    _outcome = 1
+            else:
+                # Touch to the right
+                if self.position < 2:
+                    # touch left empty
+                    _outcome = 0
+                else:
+                    # touch left wall
+                    _outcome = 1
         return _outcome
 
     def display(self):
@@ -306,10 +323,12 @@ class Environment7:
 # Instantiate the agent in Environment7
 pd.set_option('display.max_columns', 10)
 interactions = [
-    Interaction(0, 0, -1),
-    Interaction(0, 1, 1),
-    Interaction(1, 0, -1),
-    Interaction(1, 1, 1)
+    Interaction(0, 0, -5),  # move forward
+    Interaction(0, 1, 5),
+    Interaction(1, 0, -2),
+    Interaction(1, 1, -2),  # Never happen
+    # Interaction(2, 0, -1),
+    # Interaction(2, 1, -1)
 ]
 a = Agent(interactions)
 e = Environment7()
@@ -320,7 +339,7 @@ outcome = 0
 if __name__ == '__main__':
     """ The main loop controlling the interaction of the agent with the environment """
     outcome = 0
-    for step in range(30):
+    for step in range(60):
         print(f"\n*** STEP {step} ***\n")
         action = a.action(outcome)
         outcome = e.outcome(action)
