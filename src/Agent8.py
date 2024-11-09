@@ -251,60 +251,33 @@ class Environment7:
     def outcome(self, _action):
         """Take the action and generate the next outcome """
         if _action == 0:
-            # Move forward
-            if self.direction == 0:
-                # Move to the left
-                if self.position > 1:
-                    # No bump
-                    self.position -= 1
-                    self.grid[0, 3] = 1
-                    _outcome = 0
-                elif self.grid[0, 0] == 1:
-                    # First bump
-                    _outcome = 1
-                    self.grid[0, 0] = 2
-                else:
-                    # Subsequent bumps
-                    _outcome = 0
+            # Move left
+            if self.position > 1:
+                # No bump
+                self.position -= 1
+                self.grid[0, -1] = 1
+                _outcome = 0
+            elif self.grid[0, 0] == 1:
+                # First bump
+                _outcome = 1
+                self.grid[0, 0] = 2
             else:
-                # Move to the right
-                if self.position < 2:
-                    # No bump
-                    self.position += 1
-                    self.grid[0, 0] = 1
-                    _outcome = 0
-                elif self.grid[0, 3] == 1:
-                    # First bump
-                    _outcome = 1
-                    self.grid[0, 3] = 2
-                else:
-                    # Subsequent bumps
-                    _outcome = 0
-        elif _action == 1:
-            # Turn 180°
-            _outcome = 0
-            if self.direction == 0:
-                self.direction = 1
-            else:
-                self.direction = 0
+                # Subsequent bumps
+                _outcome = 0
         else:
-            # Touch
-            if self.direction == 0:
-                # Touch to the left
-                if self.position > 1:
-                    # touch left empty
-                    _outcome = 0
-                else:
-                    # touch left wall
-                    _outcome = 1
+            # Move right
+            if self.position < self.grid.shape[1] - 2:  # 2:
+                # No bump
+                self.position += 1
+                self.grid[0, 0] = 1
+                _outcome = 0
+            elif self.grid[0, -1] == 1:
+                # First bump
+                _outcome = 1
+                self.grid[0, -1] = 2
             else:
-                # Touch to the right
-                if self.position < 2:
-                    # touch left empty
-                    _outcome = 0
-                else:
-                    # touch left wall
-                    _outcome = 1
+                # Subsequent bumps
+                _outcome = 0
         return _outcome
 
     def display(self):
