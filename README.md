@@ -24,6 +24,7 @@ Notebooks that you can successively run in Google Colab or any jupyter engine:
 * [Agent 7](notebooks/agent7.ipynb): l'agent qui anticipait le coup suivant
 * [Agent 8](notebooks/agent8.ipynb): l'agent qui respectait ses engagements
 * [Agent 9](notebooks/agent9.ipynb): l'agent qui espérait gagner au coup suivant 
+* [Agent 10](notebooks/agent10.ipynb): l'agent qui montait dans la hiérarchie 
 
 # Learn more
 
