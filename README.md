@@ -1,9 +1,10 @@
-# Schema Mechanism tutorial
+# Schema Mechanism Tutorial
 
 This repository offers self-guided tutorials on designing an autonomous artificial agent controlled by an enactive schema mechanism. 
 
 ![small loop](small_loop.png)
 
+_Figure 1: The Small Loop environment ([source](experiments/small_loop.ipynb))._
 
 # Repository architecture
 
@@ -13,9 +14,9 @@ This repository offers self-guided tutorials on designing an autonomous artifici
 └── README.md       # This file.
 ```
 
-# Tutorial list
+# Tutorial
 
-The notebooks to run in any jupyter engine, for example Google Colab.
+To follow this tutorial, please run the following notebooks in any jupyter engine, for example Google Colab:
 
 * [Agent 1](notebooks/agent1.ipynb): the agent who avoided the ordinary
 * [Agent 2](notebooks/agent2.ipynb): the agent who thrived on good vibes
@@ -23,11 +24,13 @@ The notebooks to run in any jupyter engine, for example Google Colab.
 * [Agent 4](notebooks/agent4.ipynb): the agent who shifted with the context
 * [Agent 5](notebooks/agent5.ipynb): the agent who changed his mind
 * [Agent 6](notebooks/agent6.ipynb): the agent who followed ancient clues
+
+
 * [Agent 7](notebooks/agent7.ipynb): l'agent qui anticipait le coup suivant
 * [Agent 8](notebooks/agent8.ipynb): l'agent qui respectait ses engagements
 * [Agent 9](notebooks/agent9.ipynb): l'agent qui espérait gagner au coup suivant 
 * [Agent 10](notebooks/agent10.ipynb): l'agent qui montait dans la hiérarchie 
-* [Agent 11](notebooks/agent11.ipynb): Analyse de la version finale 
+* [Agent 11](notebooks/agent11.ipynb): l'agent analysé 
 
 # Learn more
 
@@ -36,5 +39,17 @@ The notebooks to run in any jupyter engine, for example Google Colab.
 * [Course 2014](https://www.youtube.com/playlist?list=PLlSPp5EpW5vEkajUvAG7r9HgDamIzZLUe): Recording of my course at Université Claude Bernard Lyon on youtube 
 * [The PetitCat project](https://github.com/OlivierGeorgeon/osoyoo): applying developmental AI to robotics
 
+# Demonstration
+
+
 ![schema mechanism](agent11.gif)
+
+_Video 1: [Agent 11](notebooks/agent11.ipynb) progressively learns hierarchical schemas visualized as increasingly longer sequences of interaction._
+
+# References
+
+Georgeon O. & Ritter F. (2012). An intrinsically-motivated schema mechanism to model and simulate emergent cognition. 
+Cognitive Systems Research 15-16: 73-92. 
+[ScienceDirect](https://doi.org/10.1016/j.cogsys.2011.07.003). 
+[PDF](https://hal.science/hal-01353099v1).
 
