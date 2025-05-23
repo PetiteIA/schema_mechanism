@@ -14,23 +14,36 @@ _Figure 1: The Small Loop environment ([source](experiments/small_loop.ipynb))._
 └── README.md       # This file.
 ```
 
-# Tutorial
+# 🔬 Tutorial
 
 To follow this tutorial, please run the following notebooks in any jupyter engine, for example Google Colab:
 
-* [Agent 1](notebooks/agent1.ipynb): the agent who avoided the ordinary
-* [Agent 2](notebooks/agent2.ipynb): the agent who thrived on good vibes
-* [Agent 3](notebooks/agent3.ipynb): the agent who tamed the turtle
-* [Agent 4](notebooks/agent4.ipynb): the agent who shifted with the context
-* [Agent 5](notebooks/agent5.ipynb): the agent who changed his mind
-* [Agent 6](notebooks/agent6.ipynb): the agent who followed ancient clues
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent1.ipynb) [Agent 1: the agent who avoided the ordinary](notebooks/agent1.ipynb)
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent2.ipynb) [Agent 2: the agent who thrived on good vibes](notebooks/agent2.ipynb) 
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent3.ipynb) [Agent 3: the agent who tamed the turtle](notebooks/agent3.ipynb)
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent4.ipynb) [Agent 4: the agent who shifted with the context](notebooks/agent4.ipynb)
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent5.ipynb) [Agent 5: the agent who changed his mind](notebooks/agent5.ipynb)
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent6.ipynb) [Agent 6: the agent who followed ancient clues](notebooks/agent6.ipynb)
 
 
-* [Agent 7](notebooks/agent7.ipynb): l'agent qui anticipait le coup suivant
-* [Agent 8](notebooks/agent8.ipynb): l'agent qui respectait ses engagements
-* [Agent 9](notebooks/agent9.ipynb): l'agent qui espérait gagner au coup suivant 
-* [Agent 10](notebooks/agent10.ipynb): l'agent qui montait dans la hiérarchie 
-* [Agent 11](notebooks/agent11.ipynb): l'agent analysé 
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent7.ipynb) [Agent 7: l'agent qui anticipait le coup suivant](notebooks/agent7.ipynb)
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent8.ipynb) [Agent 8: l'agent qui respectait ses engagements](notebooks/agent8.ipynb)
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent9.ipynb) [Agent 9: l'agent qui espérait gagner au coup suivant ](notebooks/agent9.ipynb)
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent10.ipynb) [Agent 10: l'agent qui montait dans la hiérarchie](notebooks/agent10.ipynb)
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent11.ipynb) [Agent 11: l'agent analysé](notebooks/agent11.ipynb)
+
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent12.ipynb) [Agent 12: the agent how had long short term memory](notebooks/agent12.ipynb)
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent13.ipynb) [Agent 13: l'agent qui simulait](notebooks/agent13.ipynb)
+
 
 # Learn more
 
@@ -42,11 +55,18 @@ To follow this tutorial, please run the following notebooks in any jupyter engin
 # Demonstration
 
 
-![schema mechanism](agent11.gif)
+![schema mechanism](video13.gif)
 
-_Video 1: [Agent 11](notebooks/agent11.ipynb) progressively learns hierarchical schemas visualized as increasingly longer sequences of interaction._
+_Video 1: Progressive learning of schemas: left: the agent in the environment. Right: the agent's internal simulator.
+Red squares are undesired interactions (bumping). 
+Magenta triangles are prediction errors._
 
-# References
+
+Video 1 visualizes the progressive schemas learning by showing increasingly longer sequences of interaction (right) to adapt to the environemnt (left).
+* The absence of red squares after Step 64 indicate that the agent has learned to avoid bumping into walls by actively sensing its environment through the `feel front`, `feel left`, and `feel right` interactions and turning to the right direction.
+* The absence of magenta triangles after Step 502 indicates that the agent has learned to accurately predict the outcome of actions in this environment. 
+
+# 📝 References
 
 Georgeon O. & Ritter F. (2012). An intrinsically-motivated schema mechanism to model and simulate emergent cognition. 
 Cognitive Systems Research 15-16: 73-92. 
