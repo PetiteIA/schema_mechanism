@@ -16,7 +16,7 @@ _Figure 1: The Small Loop environment ([source](experiments/small_loop.ipynb))._
 
 # 🔬 Tutorial
 
-To follow this tutorial, please run the following notebooks in any jupyter engine, for example Google Colab:
+This totorial is designed to be followed in order. 
 
 * [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent1.ipynb) [Agent 1: the agent who avoided the ordinary](notebooks/agent1.ipynb)
 
@@ -30,6 +30,7 @@ To follow this tutorial, please run the following notebooks in any jupyter engin
 
 * [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent6.ipynb) [Agent 6: the agent who followed ancient clues](notebooks/agent6.ipynb)
 
+Not yet translated to english: 
 
 * [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent7.ipynb) [Agent 7: l'agent qui anticipait le coup suivant](notebooks/agent7.ipynb)
 
@@ -45,26 +46,39 @@ To follow this tutorial, please run the following notebooks in any jupyter engin
 * [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent13.ipynb) [Agent 13: l'agent qui simulait](notebooks/agent13.ipynb)
 
 
-# Learn more
+# 🎓 Learn more
 
 * [Conférence UQAM 2025](https://youtu.be/lhuhBeAi1h0): Robotique développementale ancrée dans l'expérience moto-sensorielle.
 * [Course 2024](https://eu01web.zoom.us/rec/play/EPmd-6POQz1Dz9M4Pi8IyBoC_A-EiBSNcfqSuvHixIVoONXL7f0RrAhg619A5XvMqUMaJrG0YyhKyiw4.xASIDuUxviA3xbzC?canPlayFromShare=true&from=share_recording_detail&continueMode=true&componentName=rec-play&originRequestUrl=https%3A%2F%2Feu01web.zoom.us%2Frec%2Fshare%2FkkmT0RHFoovctgea6JM74ZxNLvrzB0mY32alikbNC73YV7YJpDiQJcyXAVLf9Zq-.vY3o7QTS166adn6g): The recording of an introductory course at Reykjavik University via Zoom
 * [Course 2014](https://www.youtube.com/playlist?list=PLlSPp5EpW5vEkajUvAG7r9HgDamIzZLUe): Recording of my course at Université Claude Bernard Lyon on youtube 
 * [The PetitCat project](https://github.com/OlivierGeorgeon/osoyoo): applying developmental AI to robotics
 
-# Demonstration
+# ▶️ Demonstration
 
 
 ![schema mechanism](video13.gif)
 
-_Video 1: Progressive learning of schemas: left: the agent in the environment. Right: the agent's internal simulator.
-Red squares are undesired interactions (bumping). 
-Magenta triangles are prediction errors._
+_Video 1: Progressive learning of schemas: left: the agent in the environment. 
+Right: the agent's internal simulator.
+Flashing red squares indicate undesired interactions (bumping). 
+Flashing Magenta triangles indicate prediction errors._
 
 
-Video 1 visualizes the progressive schemas learning by showing increasingly longer sequences of interaction (right) to adapt to the environemnt (left).
-* The absence of red squares after Step 64 indicate that the agent has learned to avoid bumping into walls by actively sensing its environment through the `feel front`, `feel left`, and `feel right` interactions and turning to the right direction.
-* The absence of magenta triangles after Step 502 indicates that the agent has learned to accurately predict the outcome of actions in this environment. 
+Video 1 shows the progressive schemas learning by visualizing increasingly longer sequences of interaction (right) to adapt to the environemnt (left).
+* The absence of flashing red squares after Step 64 indicates that the agent has learned to avoid bumping into walls by actively sensing its environment through the `feel front`, `feel left`, and `feel right` interactions and turning to the right direction.
+* The absence of flashing magenta triangles after Step 502 indicates that the agent has learned to accurately predict the outcome of actions in this environment. 
+
+![Figure 1: Embedding ](Fig1-embedding_lateralisation.svg)
+
+_Figure 1: Projection of the embedding showing that that the interactions have been grouped by their spatial positon (right, front, left)_
+
+![Figure 2: Embedding ](Fig2-embedding_feel.svg)
+
+_Figure 2: Projection of the embedding showing that the interactions have been grouped by whether they represent a wall or an empty cell_
+
+Figure 1 and Figure 2 show the projection of the embedding of the interactions in the agent's internal model.
+The fact that they are grouped in a meaningful way indicates that the agent has learned to represent them in a way that is consistent with its experience interacting with the environment.
+It is a form of experience-grounded semantics emergence.
 
 # 📝 References
 
