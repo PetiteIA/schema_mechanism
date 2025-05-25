@@ -96,7 +96,7 @@ Georgeon, O., Lurie, D., and Robertson, P. (2024).
 Artificial Enactive Inference in Three-Dimensional World. 
 Cognitive Systems Research. 84: 101234. 
 [ScienceDirect](https://doi.org/10.1016/j.cogsys.2024.101234).
-[PDF](doc/2024-CSR_Artificial_Enactive_Inference.pdf).
+[PDF](doc/2023-CSR_Enactive_Inference.pdf).
 
 # 🎓 Learn more
 
