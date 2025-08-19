@@ -6,9 +6,6 @@ This repository offers self-guided tutorials on designing an autonomous artifici
 
 _Figure 1: The developmental trajectory. The agent recursively creates and reiterates hierarchical behaviors based on initial interactional preferences._  
 
-![small loop](small_loop.png)
-
-_Figure 2: The Small Loop environment ([source](experiments/small_loop.ipynb))._
 
 # Repository architecture
 
