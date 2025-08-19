@@ -2,9 +2,13 @@
 
 This repository offers self-guided tutorials on designing an autonomous artificial agent driven by interactional motivation and controlled by an enactive schema mechanism. 
 
+![Develment trajectory](trajectoire.svg)
+
+_Figure 2: mais 
+
 ![small loop](small_loop.png)
 
-_Figure 1: The Small Loop environment ([source](experiments/small_loop.ipynb))._
+_Figure 2: The Small Loop environment ([source](experiments/small_loop.ipynb))._
 
 # Repository architecture
 
