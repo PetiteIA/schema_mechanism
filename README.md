@@ -4,7 +4,7 @@ This repository offers self-guided tutorials on designing an autonomous artifici
 
 ![Develment trajectory](trajectoire.svg)
 
-_Figure 1: The developmental trajectory. The agent recursively creates and reiterates hierarchical behaviors based on initial interactional preferences.  
+_Figure 1: The developmental trajectory. The agent recursively creates and reiterates hierarchical behaviors based on initial interactional preferences._  
 
 ![small loop](small_loop.png)
 
