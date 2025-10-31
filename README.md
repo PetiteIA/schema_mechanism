@@ -56,7 +56,7 @@ Experiments with Transformers (under development).
 # ▶️ Demonstration
 
 The agent has 5 possible actions: `Move forward`, `turn left`, `turn right`, `feel right`,`feel front`, and `feel left`.
-can only sense its environment through a binary feedback from its possible actions.  
+It can only sense its environment through a binary feedback from its possible actions.  
 
 ![schema mechanism](video13.gif)
 
