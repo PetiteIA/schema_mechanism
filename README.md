@@ -41,9 +41,9 @@ Not yet translated to english:
 
 * [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent10.ipynb) [Agent 10: l'agent qui montait dans la hiérarchie](notebooks/agent10.ipynb)
 
-* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent11.ipynb) [Agent 11: l'agent qui interagissait à distance](notebooks/agent11.ipynb)
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent11.ipynb) [Agent 11: l'ultime agent](notebooks/agent11.ipynb)
 
-* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent12.ipynb) [Agent 12: l'agent analysé](notebooks/agent11.ipynb)
+* [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent12.ipynb) [Agent 12: l'agent qui voyait loin](notebooks/agent11.ipynb)
 
 * [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/PetiteIA/schema_mechanism/blob/master/notebooks/agent13.ipynb) [Agent 13: the agent who had long short term memory](notebooks/agent12.ipynb)
 
